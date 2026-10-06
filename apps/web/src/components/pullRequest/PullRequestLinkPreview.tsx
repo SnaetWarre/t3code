@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from "react";
 
+import { shouldOpenPullRequestExternally, useBrowserLinkTarget } from "~/lib/openPullRequestLink";
 import { formatRelativeTimeLabel } from "~/timestampFormat";
 import { pullRequestEnvironment } from "~/state/pullRequests";
 import { useAtomQueryRunner } from "~/state/use-atom-query-runner";
@@ -55,6 +56,7 @@ export function PullRequestLinkPreview({
   const [open, setOpen] = useState(false);
   const previewActionsRef = useRef<PreviewCardPrimitive.Root.Actions | null>(null);
   const [resolvingClick, setResolvingClick] = useState(false);
+  const linkTargetPreference = useBrowserLinkTarget();
   const detailQuery = useEnvironmentQuery(
     open
       ? pullRequestEnvironment.detail({
@@ -71,7 +73,14 @@ export function PullRequestLinkPreview({
     confirmBeforeOpen === true
       ? cloneElement(link, {
           onClick: (event: MouseEvent<HTMLAnchorElement | HTMLButtonElement>) => {
-            if (event.shiftKey || event.altKey) return;
+            // A click headed for the browser keeps the link's own navigation: waiting on the
+            // lookup first would outlive the click's permission to open a tab.
+            if (
+              event.shiftKey ||
+              event.altKey ||
+              shouldOpenPullRequestExternally(event, linkTargetPreference)
+            )
+              return;
             const modifiers = { metaKey: event.metaKey, ctrlKey: event.ctrlKey };
             event.preventDefault();
             event.stopPropagation();

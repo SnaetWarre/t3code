@@ -273,9 +273,9 @@ export const BrowserRecordingFrameRate = Schema.Literals(BROWSER_RECORDING_FRAME
 export type BrowserRecordingFrameRate = typeof BrowserRecordingFrameRate.Type;
 export const DEFAULT_BROWSER_RECORDING_FRAME_RATE: BrowserRecordingFrameRate = 30;
 /**
- * Where a clicked link goes: the OS default browser, or a tab in the in-app
- * browser beside the thread. "system" is the default because that is what
- * every link did before the setting existed.
+ * Where a clicked link goes: the OS default browser, or T3 Code (a tab in the
+ * in-app browser, or the pull request panel for a pull request link). "app" is
+ * the default so pull request links keep opening in the panel.
  */
 export const BrowserLinkTarget = Schema.Literals(["system", "app"]);
 export type BrowserLinkTarget = typeof BrowserLinkTarget.Type;
@@ -331,8 +331,8 @@ export const ClientSettingsSchema = Schema.Struct({
   ),
   /**
    * Where links clicked in a thread (chat markdown, terminal output) open.
-   * "app" opens pull request links in the pull request panel on every client,
-   * and other links in the in-app browser, which only the desktop app has.
+   * "app" opens pull request links in the pull request panel, and other links
+   * in the in-app browser where one is available. Mobile ignores it.
    */
   browserLinkTarget: BrowserLinkTarget.pipe(
     Schema.withDecodingDefault(Effect.succeed(DEFAULT_BROWSER_LINK_TARGET)),

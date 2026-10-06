@@ -578,7 +578,6 @@ const LINK_TARGET_LABELS: Readonly<Record<BrowserLinkTarget, string>> = {
   app: "T3 Code",
 };
 
-// Not desktop-only like its neighbours: pull request links open in T3 Code on every client.
 function BrowserLinkTargetSetting() {
   const linkTarget = useClientSettings((settings) => settings.browserLinkTarget);
   const updateSettings = useUpdatePrimarySettings();
@@ -586,7 +585,7 @@ function BrowserLinkTargetSetting() {
   return (
     <SettingsRow
       {...searchableSetting("browser-link-target")}
-      description="Where links in the chat and terminal open, including pull request links. Hold ⌘ or Ctrl while clicking a pull request link to open it in the other place, or any other link to open it in your default browser."
+      description="Where links in the chat and terminal open. Pull request links in the chat follow it too, and ⌘ or Ctrl-click opens them in the other place. Other links open in your default browser with ⌘ or Ctrl-click."
       resetAction={
         linkTarget !== DEFAULT_BROWSER_LINK_TARGET ? (
           <SettingResetButton
@@ -1513,7 +1512,6 @@ export function IntegrationsSettingsPanel() {
       <BrowserAppearanceSetting disabled={previewDefaultsDisabled} />
       <BrowserRecordingFrameRateSetting disabled={previewDefaultsDisabled} />
       <BrowserRecordingInputSettings disabled={previewDefaultsDisabled} />
-      <BrowserLinkTargetSetting />
       <BrowserAutoShowFloatingPreviewSetting disabled={previewDefaultsDisabled} />
     </>
   );
@@ -1524,6 +1522,8 @@ export function IntegrationsSettingsPanel() {
           the preview defaults below are device-local and ignore it. */}
       <ProjectDefaultsSettings category="integrations" />
       <SettingsSection id="browser" title="Browser">
+        {/* Outside the desktop-only group: pull request links open in T3 Code on web too. */}
+        <BrowserLinkTargetSetting />
         {previewDefaultsDisabled ? (
           <SettingsUnavailableGroup message="Only available in the desktop app.">
             {previewDefaults}

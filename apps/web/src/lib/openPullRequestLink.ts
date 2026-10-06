@@ -201,6 +201,11 @@ export function shouldOpenPullRequestExternally(
 const selectBrowserLinkTarget = (settings: { readonly browserLinkTarget: BrowserLinkTarget }) =>
   settings.browserLinkTarget;
 
+/** Subscribed rather than read at click time: anchors decide synchronously whether to intercept. */
+export function useBrowserLinkTarget(): BrowserLinkTarget {
+  return useClientSettings(selectBrowserLinkTarget);
+}
+
 /**
  * Opens a change request link on the page, and says whether it did. Anything else — a click the
  * "Open links in" setting sends to the browser, another organisation's repository, a host nothing
@@ -232,8 +237,7 @@ export function useOpenChangeRequestLink(
   const allProjects = useProjects();
   const serverConfigs = useServerConfigs();
   const primaryEnvironmentId = usePrimaryEnvironmentId();
-  // Subscribed rather than read at click time: anchors decide synchronously whether to intercept.
-  const linkTargetPreference = useClientSettings(selectBrowserLinkTarget);
+  const linkTargetPreference = useBrowserLinkTarget();
   return useCallback(
     (event, targetUrl, targetThreadRef, targetEnvironmentId) => {
       if (shouldOpenPullRequestExternally(event, linkTargetPreference)) return false;
@@ -347,7 +351,7 @@ export function useOpenChangeRequestLink(
 export function useOpenPrLink(threadRef?: ScopedThreadRef) {
   const openChangeRequest = useOpenChangeRequestLink(threadRef);
   const openLink = useOpenLink(threadRef);
-  const linkTargetPreference = useClientSettings(selectBrowserLinkTarget);
+  const linkTargetPreference = useBrowserLinkTarget();
   return useCallback(
     (event: MouseEvent<HTMLElement>, prUrl: string, targetThreadRef?: ScopedThreadRef) => {
       event.stopPropagation();
