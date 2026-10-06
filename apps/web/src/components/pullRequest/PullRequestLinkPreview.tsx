@@ -25,6 +25,11 @@ interface PullRequestLinkPreviewTarget {
   readonly input: PullRequestRef;
 }
 
+interface LinkClickModifiers {
+  readonly metaKey: boolean;
+  readonly ctrlKey: boolean;
+}
+
 type PullRequestLinkElement = ReactElement<
   ComponentPropsWithoutRef<"a"> | ComponentPropsWithoutRef<"button">
 >;
@@ -42,8 +47,9 @@ export function PullRequestLinkPreview({
   originalUrl: string;
   target: PullRequestLinkPreviewTarget;
   confirmBeforeOpen?: boolean;
-  onOpenPullRequest?: (url: string) => boolean;
-  onOpenFallback?: (url: string) => Promise<void>;
+  /** Receives the click's modifiers, which pick between the panel and the browser. */
+  onOpenPullRequest?: (url: string, modifiers: LinkClickModifiers) => boolean;
+  onOpenFallback?: (url: string, modifiers: LinkClickModifiers) => Promise<void>;
   fallback?: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -65,7 +71,8 @@ export function PullRequestLinkPreview({
     confirmBeforeOpen === true
       ? cloneElement(link, {
           onClick: (event: MouseEvent<HTMLAnchorElement | HTMLButtonElement>) => {
-            if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            if (event.shiftKey || event.altKey) return;
+            const modifiers = { metaKey: event.metaKey, ctrlKey: event.ctrlKey };
             event.preventDefault();
             event.stopPropagation();
             if (resolvingClick) return;
@@ -74,8 +81,9 @@ export function PullRequestLinkPreview({
             void readPreview(target)
               .then(async (result) => {
                 if (isAtomCommandInterrupted(result)) return;
-                if (result._tag === "Success" && onOpenPullRequest?.(result.value.url)) return;
-                await onOpenFallback?.(originalUrl);
+                if (result._tag === "Success" && onOpenPullRequest?.(result.value.url, modifiers))
+                  return;
+                await onOpenFallback?.(originalUrl, modifiers);
               })
               .catch((error: unknown) => {
                 console.error("[pull-request-link-preview] failed to open link", error);
